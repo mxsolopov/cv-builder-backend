@@ -138,7 +138,7 @@ app.post(
 );
 
 // Resume routes
-app.get("/dashboard/", async (req, res) => {
+app.post("/dashboard/", async (req, res) => {
   try {
     const userId = req.body.params.userId;
     const resumes = await Resume.find({
@@ -150,7 +150,7 @@ app.get("/dashboard/", async (req, res) => {
   }
 });
 
-app.get("/editor/", async (req, res) => {
+app.post("/editor/", async (req, res) => {
   try {
     const userId = req.body.params.userId;
     const resume = new Resume({
