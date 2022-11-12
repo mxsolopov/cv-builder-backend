@@ -7,8 +7,8 @@ import bcrypt from "bcryptjs";
 import config from "config";
 import { check, validationResult } from "express-validator";
 import cookieParser from "cookie-parser";
-import path from 'path';
-import __dirname from './__dirname.js';
+import path from "path";
+import __dirname from "./__dirname.js";
 
 const app = express();
 app.use(express.json({ extended: true }));
@@ -140,8 +140,9 @@ app.post(
 // Resume routes
 app.post("/dashboard/", async (req, res) => {
   try {
+    const userId = req.body.params.userId;
     const resumes = await Resume.find({
-      owner: req.cookies.userId,
+      owner: userId,
     });
     res.status(201).json(resumes);
   } catch (e) {
@@ -151,6 +152,7 @@ app.post("/dashboard/", async (req, res) => {
 
 app.post("/editor/", async (req, res) => {
   try {
+    const userId = req.body.params.userId;
     const resume = new Resume({
       resumeBase: {
         title: "Название резюме",
@@ -177,11 +179,10 @@ app.post("/editor/", async (req, res) => {
         languages: [],
         hobbies: "",
       },
-      owner: req.cookies.userId,
+      owner: userId,
     });
     await resume.save();
-    res.cookie("resumeId", resume._id);
-    res.status(201).json("Резюме создано");
+    res.status(201).json(resume._id);
   } catch (e) {
     res.status(500).json({ message: "Что-то пошло не так, попробуйте снова" });
   }
@@ -191,10 +192,13 @@ app.post("/save/", async (req, res) => {
   try {
     const resumeBase = req.body.params.resumeBase;
     const resumeData = req.body.params.resumeData;
+    const userId = req.body.params.userId;
+    const resumeId = req.body.params.resumeId;
+
     await Resume.updateOne(
       {
-        owner: req.cookies.userId,
-        _id: req.cookies.resumeId,
+        owner: userId,
+        _id: resumeId,
       },
       {
         $set: { resumeBase, resumeData },
@@ -202,16 +206,20 @@ app.post("/save/", async (req, res) => {
     );
     await Resume.updateOne(
       {
-        owner: req.cookies.userId,
-        _id: req.cookies.resumeId,
+        owner: userId,
+        _id: resumeId,
       },
       {
         $set: { "resumeBase.date": getDate() },
       }
     );
-    res.status(201).json("Резюме сохранено");
+    res.status(201).json(`Резюме сохранено`);
   } catch (e) {
-    res.status(500).json({ message: "Что-то пошло не так, попробуйте снова" });
+    res
+      .status(500)
+      .json({
+        message: "Что-то пошло не так, попробуйте снова"
+      });
   }
 });
 
